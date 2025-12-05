@@ -1,27 +1,27 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "BuildComponent.generated.h"
 
+DECLARE_DELEGATE_RetVal_ThreeParams(FTransform, FPreviewSnappingRequestSignature, FVector /* StartLocation */, FVector /* ForwardVector */, float /* ForwardLength */);
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+
+
+UCLASS( Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BUILDINGSYSTEM_API UBuildComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
 	UBuildComponent();
 
+	FPreviewSnappingRequestSignature PreviewSnappingRequest;
+
 protected:
-	// Called when the game starts
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 		

@@ -10,13 +10,34 @@ USnapPointComponent::USnapPointComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
+	BoxCollision->SetupAttachment(this);
 
 	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
+	SphereCollision->SetupAttachment(this);
 
 	CapsuleCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleCollision"));
+	CapsuleCollision->SetupAttachment(this);
+
+	// Collisions' visibility settings
+	const bool bIsBox = (ESPS_Shape == ESnapPointShape::BOX);
+	const bool bIsSphere = (ESPS_Shape == ESnapPointShape::SPHERE);
+	const bool bIsCapsule = (ESPS_Shape == ESnapPointShape::CAPSULE);
+
+	BoxCollision->SetVisibility(bIsBox);
+	BoxCollision->SetHiddenInGame(!bIsBox);
+	BoxCollision->SetCollisionEnabled(bIsBox ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+
+	SphereCollision->SetVisibility(bIsSphere);
+	SphereCollision->SetHiddenInGame(!bIsSphere);
+	SphereCollision->SetCollisionEnabled(bIsSphere ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+
+	CapsuleCollision->SetVisibility(bIsCapsule);
+	CapsuleCollision->SetHiddenInGame(!bIsCapsule);
+	CapsuleCollision->SetCollisionEnabled(bIsCapsule ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 }
 
 // Init function with custom input since Components don't support deferred spawn. Bit ugly, which I hate, but hopefully a fair trade-off
+// Exists only in case the game will ever need to spawn SnapPointComponents dynamically
 void USnapPointComponent::SnapPointInit(ESnapPointShape ECS_Shape_NEW, ESnapBehaviour SnapBehaviour_NEW, FGameplayTagContainer SnapTags_NEW, float PRIORITY_NEW, bool bHardSnappingEnabled_NEW, float HardSnappingRange_NEW, bool bSoftSnappingEnabled_NEW, float SoftSnappingRange_NEW, bool bSuggestedRotationEnabled_NEW, FRotator SuggestedRotation_NEW, bool bSuggestedScaleEnabled_NEW, FVector SuggestedScale_NEW)
 {
 	ESPS_Shape = ECS_Shape_NEW;
