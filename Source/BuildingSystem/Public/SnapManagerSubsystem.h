@@ -13,6 +13,6 @@ class BUILDINGSYSTEM_API USnapManagerSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 	
 public:
-	FTransform CalculateSnap(FVector StartLocation, FVector ForwardVector, float ForwardLength);
+	FTransform CalculateSnap(FVector TraceResultLocation, FGameplayTagContainer);
 
 };

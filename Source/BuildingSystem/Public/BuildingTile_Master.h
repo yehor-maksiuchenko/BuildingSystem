@@ -25,7 +25,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UStaticMeshComponent* Mesh;
+	UStaticMeshComponent* MeshComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	ETileName ETN_TileName;
@@ -35,8 +35,4 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	virtual TArray<USnapPointComponent*> GetSnapPoints() PURE_VIRTUAL(ABuildingTile_Master::GetSnapPoints, return TArray<USnapPointComponent*>(););
-
-	UFUNCTION(BlueprintPure)
-	ETileName GetTileName();
-	
 };
