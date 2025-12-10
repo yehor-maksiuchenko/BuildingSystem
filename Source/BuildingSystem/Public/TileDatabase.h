@@ -16,6 +16,9 @@ protected:
 
 public:
 	UFUNCTION(BlueprintPure)
+	int Length() const;
+
+	UFUNCTION(BlueprintPure)
 	ETileName GetTileName(int Index) const;
 
 	UFUNCTION(BlueprintPure)

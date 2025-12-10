@@ -7,6 +7,7 @@
 #include "BuildComponent.generated.h"
 
 class UStaticMeshComponent;
+class UCameraComponent;
 
 DECLARE_DELEGATE_RetVal_TwoParams(FTransform, FPreviewSnappingRequestSignature, FVector /* TraceResultLocation */, FGameplayTagContainer /* SortingTags */);
 
@@ -29,14 +30,38 @@ protected:
 	UFUNCTION()
 	void ToggleBuildMode(const FInputActionValue& Value);
 
+	UFUNCTION()
+	void SelectNextTile();
+
+	UFUNCTION()
+	void SelectPreviousTile();
+
+	UFUNCTION()
+	void SetPreviewMesh(UStaticMesh* NewMesh);
+
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+private:
+	// TAG-SHORTCUTSy. ONLY TO BE USED IN C++
+
+	const FGameplayTag BuildModeTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.BuildMode"));
+	const FGameplayTag AdjustModeTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.AdjustMode"));
+	const FGameplayTag PreviewValidTag = FGameplayTag::RequestGameplayTag(FName("PreviewState.Valid"));
+	const FGameplayTag PreviewInvalidTag = FGameplayTag::RequestGameplayTag(FName("PreviewState.Invalid"));
+	const FGameplayTag PreviewPartialValidTag = FGameplayTag::RequestGameplayTag(FName("PreviewState.Partial"));
+
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	// MISCHELANOUS
+
+	UPROPERTY(BlueprintReadOnly)
+	UCameraComponent* OwnerCamera;
+
+	UPROPERTY(BlueprintReadWrite)
 	FGameplayTagContainer StateTags;
 
 	// INPUT
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	class UInputMappingContext* DefaultMappingContext;
 
@@ -46,7 +71,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	class UInputAction* PlaceTheTileAction;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	class UInputAction* NextTileAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	class UInputAction* PreviousTileAction;
+
 	// Working with tiles
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UTileDatabase* TilesList;
 
@@ -60,9 +92,22 @@ protected:
 	int CurrentTileSelection = 0;
 
 	// Preview Mesh
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UStaticMeshComponent* PreviewMesh;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UStaticMeshComponent* HintPreviewMesh;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UMaterialInstance* PreviewMaterial;
+
+	UPROPERTY(BlueprintReadOnly)
+	UMaterialInstanceDynamic* PreviewMID;
+
+	UFUNCTION(BlueprintCallable)
+	void SetPreviewMaterialPrecise(float Value);
+
+	UFUNCTION(BlueprintCallable)
+	void SetPreviewMaterialDynamic(float MinDistance, float MaxDistance, float GivenDistance);
 };

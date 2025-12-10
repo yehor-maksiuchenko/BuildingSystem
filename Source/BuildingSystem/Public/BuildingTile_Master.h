@@ -40,5 +40,5 @@ public:
 	ETileName GetTileName() const;
 
 	UFUNCTION(BlueprintPure)
-	virtual TArray<USnapPointComponent*> GetSnapPoints() PURE_VIRTUAL(ABuildingTile_Master::GetSnapPoints, return TArray<USnapPointComponent*>(););
+	TArray<USnapPointComponent*> GetSnapPoints();
 };

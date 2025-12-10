@@ -3,6 +3,8 @@
 #include "BuildingTile_Master.h"
 #include "Engine/World.h" 
 #include "SnapManagerSubsystem.h"
+#include "BuildingSystemCharacter.h"
+#include "Camera/CameraComponent.h"
 #include "Components/StaticMeshComponent.h"
 
 UBuildComponent::UBuildComponent()
@@ -10,7 +12,6 @@ UBuildComponent::UBuildComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
     PreviewMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PreviewMesh"));
-    PreviewMesh->SetStaticMesh(TilesList->GetTileMesh(CurrentTileSelection));
 
     HintPreviewMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HintPreviewMesh"));
 }
@@ -19,6 +20,17 @@ UBuildComponent::UBuildComponent()
 void UBuildComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+    SetPreviewMesh(TilesList->GetTileMesh(CurrentTileSelection));
+    PreviewMID = UMaterialInstanceDynamic::Create(PreviewMaterial, this);
+    PreviewMesh->SetMaterial(0, PreviewMID);
+    SetPreviewMaterialPrecise(1.0f);
+    PreviewMesh->SetVisibility(false);
+    HintPreviewMesh->SetVisibility(false);
+
+    if (ABuildingSystemCharacter* Owner = Cast<ABuildingSystemCharacter>(GetOwner())) {
+        OwnerCamera = Owner->GetFirstPersonCameraComponent();
+    }
 
     // Bind delegate to SnapManagerSubsystem
     if (UWorld* World = GetWorld())
@@ -39,13 +51,50 @@ void UBuildComponent::BeginPlay()
         {
             InputComp->BindAction(ToggleBuildModeAction, ETriggerEvent::Started, this, &UBuildComponent::ToggleBuildMode);
             InputComp->BindAction(PlaceTheTileAction, ETriggerEvent::Started, this, &UBuildComponent::TryPlaceTheTile);
+            InputComp->BindAction(NextTileAction, ETriggerEvent::Started, this, &UBuildComponent::SelectNextTile);
+            InputComp->BindAction(PreviousTileAction, ETriggerEvent::Started, this, &UBuildComponent::SelectPreviousTile);
         }
+    }
+}
+
+void UBuildComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+    if (StateTags.HasTagExact(BuildModeTag)) {
+        FHitResult HitResult = LineTrace();
+        if (HitResult.bBlockingHit) {
+            PreviewMesh->SetWorldLocation(HitResult.Location);
+        }
+        else {
+            PreviewMesh->SetWorldLocation(HitResult.TraceEnd);
+        }
+    }
+}
+
+void UBuildComponent::SetPreviewMesh(UStaticMesh* NewMesh)
+{
+    if (NewMesh) {
+        PreviewMesh->SetStaticMesh(NewMesh);
+        HintPreviewMesh->SetStaticMesh(NewMesh);
+
+        PreviewMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        HintPreviewMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+        PreviewMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+        HintPreviewMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+        PreviewMesh->SetGenerateOverlapEvents(false);
+        HintPreviewMesh->SetGenerateOverlapEvents(false);
+
+        PreviewMesh->SetCanEverAffectNavigation(false);
+        HintPreviewMesh->SetCanEverAffectNavigation(false);
     }
 }
 
 void UBuildComponent::TryPlaceTheTile(const FInputActionValue& Value)
 {
-    if (StateTags.HasTag(FGameplayTag::RequestGameplayTag(FName("PlayerState.BuildMode")))) {
+    if (StateTags.HasTag(BuildModeTag)) {
         TSubclassOf<ABuildingTile_Master> TileClass = TilesList->GetTileClassRef(CurrentTileSelection);
         FActorSpawnParameters SpawnParams;
         GetWorld()->SpawnActor<ABuildingTile_Master>(
@@ -58,27 +107,50 @@ void UBuildComponent::TryPlaceTheTile(const FInputActionValue& Value)
 
 void UBuildComponent::ToggleBuildMode(const FInputActionValue& Value)
 {
-
-}
-
-
-void UBuildComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-    FHitResult HitResult = LineTrace();
-    if (HitResult.bBlockingHit) {
-        PreviewMesh->SetWorldLocation(HitResult.Location);
+    
+    if (StateTags.HasTagExact(BuildModeTag))
+    {
+        PreviewMesh->SetVisibility(false);
+        HintPreviewMesh->SetVisibility(false);
+        StateTags.RemoveTag(BuildModeTag);
     }
     else {
-        PreviewMesh->SetWorldLocation(HitResult.TraceEnd);
+        PreviewMesh->SetVisibility(true);
+        HintPreviewMesh->SetVisibility(false);
+        StateTags.AddTag(BuildModeTag);
     }
+}
+
+void UBuildComponent::SelectNextTile()
+{
+    if (!StateTags.HasTagExact(AdjustModeTag)) {
+        if (CurrentTileSelection == (TilesList->Length() - 1)) {
+            CurrentTileSelection = 0;
+        }
+        else {
+            CurrentTileSelection++;
+        }
+    }
+    SetPreviewMesh(TilesList->GetTileMesh(CurrentTileSelection));
+}
+
+void UBuildComponent::SelectPreviousTile()
+{
+    if (!StateTags.HasTagExact(AdjustModeTag)) {
+        if (CurrentTileSelection == 0) {
+            CurrentTileSelection = TilesList->Length() - 1;
+        }
+        else {
+            CurrentTileSelection--;
+        }
+    }
+    SetPreviewMesh(TilesList->GetTileMesh(CurrentTileSelection));
 }
 
 FHitResult UBuildComponent::LineTrace()
 {
-    FVector StartLocation = GetOwner()->GetActorLocation();
-    FVector ForwardVector = GetOwner()->GetActorForwardVector();
+    FVector StartLocation = OwnerCamera->GetComponentLocation();
+    FVector ForwardVector = OwnerCamera->GetForwardVector();
     float TraceLength = 500.f;
 
     FVector EndLocation = StartLocation + ForwardVector * TraceLength;
@@ -95,6 +167,16 @@ FHitResult UBuildComponent::LineTrace()
         QueryParams
     );
 
-    return FHitResult();
+    return HitResult;
+}
+
+void UBuildComponent::SetPreviewMaterialPrecise(float NewValue)
+{
+    PreviewMID->SetScalarParameterValue(FName("Value"), FMath::Clamp(NewValue, 0.0f, 1.0f));
+}
+
+void UBuildComponent::SetPreviewMaterialDynamic(float MinDistance, float MaxDistance, float GivenDistance)
+{
+
 }
 

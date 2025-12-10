@@ -1,5 +1,10 @@
 #include "TileDatabase.h"
 
+int UTileDatabase::Length() const 
+{
+    return Tiles.Num();
+}
+
 ETileName UTileDatabase::GetTileName(int Index) const
 {
     const ABuildingTile_Master* CDO = Tiles[Index]->GetDefaultObject<ABuildingTile_Master>();

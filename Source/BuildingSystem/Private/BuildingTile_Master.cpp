@@ -33,3 +33,10 @@ ETileName ABuildingTile_Master::GetTileName() const
 	return ETN_TileName;
 }
 
+TArray<USnapPointComponent*> ABuildingTile_Master::GetSnapPoints()
+{
+	TArray<USnapPointComponent*> SnapPoints;
+	GetComponents<USnapPointComponent>(SnapPoints);
+	return SnapPoints;
+}
+
