@@ -10,6 +10,7 @@ UBuildComponent::UBuildComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
     PreviewMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PreviewMesh"));
+    PreviewMesh->SetStaticMesh(TilesList->GetTileMesh(CurrentTileSelection));
 
     HintPreviewMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HintPreviewMesh"));
 }
@@ -36,20 +37,26 @@ void UBuildComponent::BeginPlay()
     {
         if (UEnhancedInputComponent* InputComp = Owner->FindComponentByClass<UEnhancedInputComponent>())
         {
-            InputComp->BindAction(ToggleBuildModeAction, ETriggerEvent::Started, this, &ToggleBuildMode);
-            InputComp->BindAction(PlaceTheTileAction, ETriggerEvent::Started, this, &TryPlaceTheTile);
+            InputComp->BindAction(ToggleBuildModeAction, ETriggerEvent::Started, this, &UBuildComponent::ToggleBuildMode);
+            InputComp->BindAction(PlaceTheTileAction, ETriggerEvent::Started, this, &UBuildComponent::TryPlaceTheTile);
         }
     }
 }
 
-void UBuildComponent::TryPlaceTheTile()
+void UBuildComponent::TryPlaceTheTile(const FInputActionValue& Value)
 {
     if (StateTags.HasTag(FGameplayTag::RequestGameplayTag(FName("PlayerState.BuildMode")))) {
-        GetWorld()->SpawnActor<TSubclassOf<ABuildingTile_Master>>();
+        TSubclassOf<ABuildingTile_Master> TileClass = TilesList->GetTileClassRef(CurrentTileSelection);
+        FActorSpawnParameters SpawnParams;
+        GetWorld()->SpawnActor<ABuildingTile_Master>(
+            TileClass,
+            PreviewMesh->GetComponentTransform(),
+            SpawnParams
+        );
     }
 }
 
-void UBuildComponent::ToggleBuildMode()
+void UBuildComponent::ToggleBuildMode(const FInputActionValue& Value)
 {
 
 }
@@ -61,7 +68,10 @@ void UBuildComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 
     FHitResult HitResult = LineTrace();
     if (HitResult.bBlockingHit) {
-
+        PreviewMesh->SetWorldLocation(HitResult.Location);
+    }
+    else {
+        PreviewMesh->SetWorldLocation(HitResult.TraceEnd);
     }
 }
 

@@ -34,5 +34,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintPure)
+	UStaticMeshComponent* GetStaticMeshComponent() const;
+
+	UFUNCTION(BlueprintPure)
+	ETileName GetTileName() const;
+
+	UFUNCTION(BlueprintPure)
 	virtual TArray<USnapPointComponent*> GetSnapPoints() PURE_VIRTUAL(ABuildingTile_Master::GetSnapPoints, return TArray<USnapPointComponent*>(););
 };

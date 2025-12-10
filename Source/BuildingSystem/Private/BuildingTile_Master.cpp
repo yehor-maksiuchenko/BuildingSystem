@@ -7,8 +7,8 @@ ABuildingTile_Master::ABuildingTile_Master()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	RootComponent = Mesh;
+	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	RootComponent = MeshComponent;
 }
 
 void ABuildingTile_Master::BeginPlay()
@@ -23,7 +23,12 @@ void ABuildingTile_Master::Tick(float DeltaTime)
 
 }
 
-ETileName ABuildingTile_Master::GetTileName()
+UStaticMeshComponent* ABuildingTile_Master::GetStaticMeshComponent() const
+{
+	return MeshComponent;
+}
+
+ETileName ABuildingTile_Master::GetTileName() const
 {
 	return ETN_TileName;
 }

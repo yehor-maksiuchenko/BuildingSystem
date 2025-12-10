@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "BuildingTile_Master.h"
 #include "GameplayTagContainer.h"
 #include "TileDatabase.h"
 #include "BuildComponent.generated.h"
@@ -25,10 +24,10 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void TryPlaceTheTile();
+	void TryPlaceTheTile(const FInputActionValue& Value);
 
 	UFUNCTION()
-	void ToggleBuildMode();
+	void ToggleBuildMode(const FInputActionValue& Value);
 
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -47,21 +46,23 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	class UInputAction* PlaceTheTileAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	// Working with tiles
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UTileDatabase* TilesList;
 
 	UFUNCTION(BlueprintCallable)
 	FHitResult LineTrace();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditInstanceOnly, BlueprintReadWrite)
 	FVector TraceResultLocation;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditInstanceOnly, BlueprintReadWrite)
+	int CurrentTileSelection = 0;
+
+	// Preview Mesh
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UStaticMeshComponent* PreviewMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UStaticMeshComponent* HintPreviewMesh;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintRead)
-	UTileDatabase* TilesList;
 };
