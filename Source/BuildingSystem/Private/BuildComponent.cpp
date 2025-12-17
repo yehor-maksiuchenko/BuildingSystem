@@ -53,6 +53,7 @@ void UBuildComponent::BeginPlay()
             InputComp->BindAction(PlaceTheTileAction, ETriggerEvent::Started, this, &UBuildComponent::TryPlaceTheTile);
             InputComp->BindAction(NextTileAction, ETriggerEvent::Started, this, &UBuildComponent::SelectNextTile);
             InputComp->BindAction(PreviousTileAction, ETriggerEvent::Started, this, &UBuildComponent::SelectPreviousTile);
+            InputComp->BindAction(RotatePreviewAction, ETriggerEvent::Started, this, &UBuildComponent::RotatePreview);
         }
     }
 }
@@ -70,6 +71,21 @@ void UBuildComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
             PreviewMesh->SetWorldLocation(HitResult.TraceEnd);
         }
     }
+
+    if (PreviewSnappingRequest.IsBound())
+    {
+        PreviewMesh->SetWorldTransform(PreviewSnappingRequest.Execute(PreviewMesh->GetComponentTransform(), TilesList->GetTileTagPreferences(CurrentTileSelection)));
+    }
+}
+
+float UBuildComponent::GetPreviewRotationSensitivity() const
+{
+    return PreviewRotationMultiplier;
+}
+
+void UBuildComponent::SetPreviewRotationSensitivity(float Value)
+{
+    PreviewRotationMultiplier = Value;
 }
 
 void UBuildComponent::SetPreviewMesh(UStaticMesh* NewMesh)
@@ -130,8 +146,8 @@ void UBuildComponent::SelectNextTile()
         else {
             CurrentTileSelection++;
         }
+        SetPreviewMesh(TilesList->GetTileMesh(CurrentTileSelection));
     }
-    SetPreviewMesh(TilesList->GetTileMesh(CurrentTileSelection));
 }
 
 void UBuildComponent::SelectPreviousTile()
@@ -143,8 +159,17 @@ void UBuildComponent::SelectPreviousTile()
         else {
             CurrentTileSelection--;
         }
+        SetPreviewMesh(TilesList->GetTileMesh(CurrentTileSelection));
     }
-    SetPreviewMesh(TilesList->GetTileMesh(CurrentTileSelection));
+}
+
+void UBuildComponent::RotatePreview(const FInputActionValue& Value)
+{
+    if (StateTags.HasTagExact(BuildModeTag) && !StateTags.HasTagExact(AdjustModeTag)) {
+        FRotator CurrentRotation = PreviewMesh->GetComponentRotation();
+        float NewYaw = CurrentRotation.Yaw + (PreviewRotationMultiplier * Value.GetMagnitude());
+        PreviewMesh->SetWorldRotation(FRotator(CurrentRotation.Pitch, NewYaw, CurrentRotation.Roll));
+    }
 }
 
 FHitResult UBuildComponent::LineTrace()

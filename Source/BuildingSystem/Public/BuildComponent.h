@@ -9,7 +9,9 @@
 class UStaticMeshComponent;
 class UCameraComponent;
 
-DECLARE_DELEGATE_RetVal_TwoParams(FTransform, FPreviewSnappingRequestSignature, FVector /* TraceResultLocation */, FGameplayTagContainer /* SortingTags */);
+using FTagPreferenceMap = TMap<FGameplayTag, int32>;
+
+DECLARE_DELEGATE_RetVal_TwoParams(FTransform, FPreviewSnappingRequestSignature, FTransform /* PreviewTransform */, FTagPreferenceMap /* TagPreferences */)
 
 UCLASS( Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BUILDINGSYSTEM_API UBuildComponent : public UActorComponent
@@ -37,13 +39,17 @@ protected:
 	void SelectPreviousTile();
 
 	UFUNCTION()
+	void RotatePreview(const FInputActionValue& Value);
+
+
+	UFUNCTION()
 	void SetPreviewMesh(UStaticMesh* NewMesh);
 
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
-	// TAG-SHORTCUTSy. ONLY TO BE USED IN C++
+	// TAG-SHORTCUTS. ONLY TO BE USED IN C++
 
 	const FGameplayTag BuildModeTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.BuildMode"));
 	const FGameplayTag AdjustModeTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.AdjustMode"));
@@ -52,6 +58,17 @@ private:
 	const FGameplayTag PreviewPartialValidTag = FGameplayTag::RequestGameplayTag(FName("PreviewState.Partial"));
 
 protected:
+	// Player Settings
+
+	UPROPERTY(EditDefaultsOnly)
+	float PreviewRotationMultiplier = 5.0f;
+
+	UFUNCTION(BlueprintPure)
+	float GetPreviewRotationSensitivity() const;
+
+	UFUNCTION(BlueprintCallable)
+	void SetPreviewRotationSensitivity(float Value);
+
 	// MISCHELANOUS
 
 	UPROPERTY(BlueprintReadOnly)
@@ -76,6 +93,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	class UInputAction* PreviousTileAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	class UInputAction* RotatePreviewAction;
 
 	// Working with tiles
 

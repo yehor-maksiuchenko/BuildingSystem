@@ -8,7 +8,23 @@ ABuildingTile_Master::ABuildingTile_Master()
 	PrimaryActorTick.bCanEverTick = true;
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	RootComponent = MeshComponent;
+	MeshComponent->SetupAttachment(RootComponent);
+
+    static const TArray<FName> DefaultSnapTags =
+    {
+        "Snap.Support.Solo",
+        "Snap.Support.Set"
+    };
+
+
+    for (const FName& TagName : DefaultSnapTags)
+    {
+        FGameplayTag Tag = FGameplayTag::RequestGameplayTag(TagName, true);
+        if (Tag.IsValid())
+        {
+            TagPreferences.Add(Tag, 0);
+        }
+    }
 }
 
 void ABuildingTile_Master::BeginPlay()
@@ -38,5 +54,10 @@ TArray<USnapPointComponent*> ABuildingTile_Master::GetSnapPoints()
 	TArray<USnapPointComponent*> SnapPoints;
 	GetComponents<USnapPointComponent>(SnapPoints);
 	return SnapPoints;
+}
+
+TMap<FGameplayTag, int32> ABuildingTile_Master::GetTagPreferences() const
+{
+	return TagPreferences;
 }
 

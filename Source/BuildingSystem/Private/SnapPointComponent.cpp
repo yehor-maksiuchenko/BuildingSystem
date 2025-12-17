@@ -7,7 +7,7 @@
 
 USnapPointComponent::USnapPointComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
 	BoxCollision->SetupAttachment(this);
@@ -17,23 +17,7 @@ USnapPointComponent::USnapPointComponent()
 
 	CapsuleCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleCollision"));
 	CapsuleCollision->SetupAttachment(this);
-
-	// Collisions' visibility settings
-	const bool bIsBox = (ESPS_Shape == ESnapPointShape::BOX);
-	const bool bIsSphere = (ESPS_Shape == ESnapPointShape::SPHERE);
-	const bool bIsCapsule = (ESPS_Shape == ESnapPointShape::CAPSULE);
-
-	BoxCollision->SetVisibility(bIsBox);
-	BoxCollision->SetHiddenInGame(!bIsBox);
-	BoxCollision->SetCollisionEnabled(bIsBox ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
-
-	SphereCollision->SetVisibility(bIsSphere);
-	SphereCollision->SetHiddenInGame(!bIsSphere);
-	SphereCollision->SetCollisionEnabled(bIsSphere ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
-
-	CapsuleCollision->SetVisibility(bIsCapsule);
-	CapsuleCollision->SetHiddenInGame(!bIsCapsule);
-	CapsuleCollision->SetCollisionEnabled(bIsCapsule ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+	CapsuleCollision->SetCapsuleRadius(300.f);
 }
 
 // Init function with custom input since Components don't support deferred spawn. Bit ugly, which I hate, but hopefully a fair trade-off
@@ -58,7 +42,25 @@ void USnapPointComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	
+	// Collisions' visibility settings
+	const bool bIsBox = (ESPS_Shape == ESnapPointShape::BOX);
+	const bool bIsSphere = (ESPS_Shape == ESnapPointShape::SPHERE);
+	const bool bIsCapsule = (ESPS_Shape == ESnapPointShape::CAPSULE);
+
+	BoxCollision->SetVisibility(bIsBox);
+	BoxCollision->SetHiddenInGame(!bIsBox);
+	BoxCollision->SetCollisionEnabled(bIsBox ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+	if (bIsBox) BoxCollision->SetCollisionProfileName(TEXT("SnapPoint"));
+
+	SphereCollision->SetVisibility(bIsSphere);
+	SphereCollision->SetHiddenInGame(!bIsSphere);
+	SphereCollision->SetCollisionEnabled(bIsSphere ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+	if (bIsSphere) SphereCollision->SetCollisionProfileName(TEXT("SnapPoint"));
+
+	CapsuleCollision->SetVisibility(bIsCapsule);
+	CapsuleCollision->SetHiddenInGame(!bIsCapsule);
+	CapsuleCollision->SetCollisionEnabled(bIsCapsule ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+	if (bIsCapsule) CapsuleCollision->SetCollisionProfileName(TEXT("SnapPoint"));
 }
 
 void USnapPointComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -69,11 +71,14 @@ void USnapPointComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 FSnapPointProperties USnapPointComponent::GetSnapPointProperties()
 {
-	return FSnapPointProperties(ESPS_Shape, SnapTags, USceneComponent::GetComponentLocation(), PRIORITY);
+	return FSnapPointProperties(ESPS_Shape, SnapTags, 
+		USceneComponent::GetComponentLocation(), PRIORITY);
 }
 
 FSnappingRules USnapPointComponent::GetSnappingRules()
 {
-	return FSnappingRules(USceneComponent::GetComponentTransform(), ESPS_Shape, ESB_SnapBehaviour, bSuggestedRotationEnabled, SuggestedRotation, bSuggestedScaleEnabled, SuggestedScale);
+	return FSnappingRules(GetComponentTransform(), 
+		ESPS_Shape, ESB_SnapBehaviour, bHardSnappingEnabled, HardSnappingRange, bSoftSnappingEnabled, SoftSnappingRange, bSuggestedRotationEnabled, 
+		SuggestedRotation, bSuggestedScaleEnabled, SuggestedScale);
 }
 

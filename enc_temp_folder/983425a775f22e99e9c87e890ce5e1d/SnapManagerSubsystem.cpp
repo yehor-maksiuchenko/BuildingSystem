@@ -160,7 +160,7 @@ FTransform USnapManagerSubsystem::RegulateSnap(const FTransform& PreviewTransfor
 
 			FVector SnapPointPreviewDirection = (PreviewTransform.GetLocation() - Rules.SnapPointTransform.GetLocation()).GetSafeNormal();
 
-			SnappedLocation = Rules.SnapPointTransform.GetLocation() + SnapPointPreviewDirection * Radius;
+			SnappedLocation = Rules.SnapPointTransform.GetLocation() + Radius;
 			break;
 		}
 		}

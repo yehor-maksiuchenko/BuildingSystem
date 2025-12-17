@@ -79,6 +79,18 @@ struct FSnappingRules {
 	ESnapBehaviour ESB_SnapRules;
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
+	bool bHardSnappingEnabled;
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
+	float HardSnappingRange;
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
+	bool bSoftSnappingEnabled;
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
+	float SoftSnappingRange;
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
 	bool bSuggestedRotationEnabled = false;
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
@@ -94,6 +106,10 @@ struct FSnappingRules {
 		: SnapPointTransform(FTransform::Identity)
 		, ECS_Shape(ESnapPointShape::BOX)
 		, ESB_SnapRules(ESnapBehaviour::SNAP_BASE_LOCATION)
+		, bHardSnappingEnabled(false)
+		, HardSnappingRange(0.f)
+		, bSoftSnappingEnabled(false)
+		, SoftSnappingRange(0.f)
 		, bSuggestedRotationEnabled(false)
 		, SnapRotation(FRotator::ZeroRotator)
 		, bSuggestedScaleEnabled(false)
@@ -105,6 +121,10 @@ struct FSnappingRules {
 		const FTransform& Transform,
 		ESnapPointShape Shape,
 		ESnapBehaviour Behaviour,
+		bool bHardSnapping,
+		float HardRange,
+		bool bSoftSnapping,
+		float SoftRange,
 		bool bRotationEnabled,
 		const FRotator& Rotation,
 		bool bScaleEnabled,
@@ -112,6 +132,10 @@ struct FSnappingRules {
 		: SnapPointTransform(Transform)
 		, ECS_Shape(Shape)
 		, ESB_SnapRules(Behaviour)
+		, bHardSnappingEnabled(bHardSnapping)
+		, HardSnappingRange(HardRange)
+		, bSoftSnappingEnabled(bSoftSnapping)
+		, SoftSnappingRange(SoftRange)
 		, bSuggestedRotationEnabled(bRotationEnabled)
 		, SnapRotation(Rotation)
 		, bSuggestedScaleEnabled(bScaleEnabled)
@@ -148,6 +172,15 @@ public:
 	UFUNCTION(BlueprintPure)
 	FSnappingRules GetSnappingRules();
 
+	UFUNCTION(BlueprintPure)
+	UCapsuleComponent* GetCapsuleCollision() const { return CapsuleCollision; }
+
+	UFUNCTION(BlueprintPure)
+	UBoxComponent* GetBoxCollision() const { return BoxCollision; }
+
+	UFUNCTION(BlueprintPure)
+	USphereComponent* GetSphereCollision() const { return SphereCollision; }
+
 protected:
 										/* Variables */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -160,41 +193,48 @@ protected:
 	FGameplayTagContainer SnapTags;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float PRIORITY; // Needed for Weighted Rule-Based Scoring
+	float PRIORITY = 1.0f; // Needed for Weighted Rule-Based Scoring
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bHardSnappingEnabled;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true", 
+		EditCondition = "bHardSnappingEnabled", EditConditionHides))
 	float HardSnappingRange;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bSoftSnappingEnabled;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true",
+		EditCondition = "bSoftSnappingEnabled", EditConditionHides))
 	float SoftSnappingRange;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bSuggestedRotationEnabled;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true",
+		EditCondition = "bSuggestedRotationEnabled", EditConditionHides))
 	FRotator SuggestedRotation;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bSuggestedScaleEnabled;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true",
+		EditCondition = "bSuggestedScaleEnabled", EditConditionHides))
 	FVector SuggestedScale;
 
 	/* VISUALS */
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true", 
+		EditCondition = "ESPS_Shape == ESnapPointShape::BOX", EditConditionHides))
 	UBoxComponent* BoxCollision;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true",
+		EditCondition = "ESPS_Shape == ESnapPointShape::SPHERE", EditConditionHides))
 	USphereComponent* SphereCollision;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true",
+		EditCondition = "ESPS_Shape == ESnapPointShape::CAPSULE", EditConditionHides))
 	UCapsuleComponent* CapsuleCollision;
 
 };

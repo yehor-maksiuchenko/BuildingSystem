@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GameplayTagContainer.h"
 #include "BuildingTile_Master.generated.h"
 
 class UStaticMeshComponent;
@@ -30,6 +31,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	ETileName ETN_TileName;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TMap<FGameplayTag, int32> TagPreferences;
+
 public:	
 	virtual void Tick(float DeltaTime) override;
 
@@ -41,4 +45,7 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	TArray<USnapPointComponent*> GetSnapPoints();
+
+	UFUNCTION(BlueprintPure)
+	TMap<FGameplayTag, int32> GetTagPreferences() const;
 };

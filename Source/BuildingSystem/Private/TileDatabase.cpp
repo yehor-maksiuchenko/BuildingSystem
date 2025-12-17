@@ -26,3 +26,9 @@ TArray<USnapPointComponent*> UTileDatabase::GetTileSnapPoints(int Index)
 {
     return TArray<USnapPointComponent*>();
 }
+
+TMap<FGameplayTag, int32> UTileDatabase::GetTileTagPreferences(int Index) const
+{
+    const ABuildingTile_Master* CDO = Tiles[Index]->GetDefaultObject<ABuildingTile_Master>();
+    return CDO->GetTagPreferences();
+}

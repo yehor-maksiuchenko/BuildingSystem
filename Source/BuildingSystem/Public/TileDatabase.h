@@ -29,4 +29,7 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	TArray<USnapPointComponent*> GetTileSnapPoints(int Index);
+
+	UFUNCTION(BlueprintPure)
+	TMap<FGameplayTag, int32> GetTileTagPreferences(int Index) const;
 };
