@@ -29,13 +29,29 @@ ABuildingSystemCharacter::ABuildingSystemCharacter()
 
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
-	Mesh1P->SetOnlyOwnerSee(true);
 	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
 	Mesh1P->bCastDynamicShadow = false;
 	Mesh1P->CastShadow = false;
-	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+	Mesh1P->SetOnlyOwnerSee(true);
+	Mesh1P->SetOwnerNoSee(false);
 
+	Mesh3P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh3P"));
+	Mesh3P->SetupAttachment(GetCapsuleComponent());
+	Mesh3P->bCastDynamicShadow = true;
+	Mesh3P->CastShadow = true;
+	Mesh3P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+	Mesh3P->SetOnlyOwnerSee(false);
+	Mesh3P->SetOwnerNoSee(true);
+
+	bReplicates = true;
+	SetReplicateMovement(true);
+
+	Mesh1P->SetIsReplicated(true);
+	Mesh3P->SetIsReplicated(true);
+	FirstPersonCameraComponent->SetIsReplicated(false);
+
+	BuildComponent = CreateDefaultSubobject<UBuildComponent>(TEXT("BuildComponent"));
 }
 
 void ABuildingSystemCharacter::BeginPlay()
@@ -60,6 +76,12 @@ void ABuildingSystemCharacter::SetupPlayerInputComponent(UInputComponent* Player
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ABuildingSystemCharacter::Look);
+
+		EnhancedInputComponent->BindAction(ToggleBuildModeAction, ETriggerEvent::Started, BuildComponent, &UBuildComponent::ToggleBuildMode);
+		EnhancedInputComponent->BindAction(PlaceTheTileAction, ETriggerEvent::Started, BuildComponent, &UBuildComponent::TryPlaceTheTile);
+		EnhancedInputComponent->BindAction(NextTileAction, ETriggerEvent::Started, BuildComponent, &UBuildComponent::SelectNextTile);
+		EnhancedInputComponent->BindAction(PreviousTileAction, ETriggerEvent::Started, BuildComponent, &UBuildComponent::SelectPreviousTile);
+		EnhancedInputComponent->BindAction(RotatePreviewAction, ETriggerEvent::Started, BuildComponent, &UBuildComponent::RotatePreview);
 	}
 	else
 	{

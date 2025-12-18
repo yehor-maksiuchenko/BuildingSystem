@@ -48,17 +48,17 @@ void USnapPointComponent::BeginPlay()
 	const bool bIsCapsule = (ESPS_Shape == ESnapPointShape::CAPSULE);
 
 	BoxCollision->SetVisibility(bIsBox);
-	BoxCollision->SetHiddenInGame(!bIsBox);
+	BoxCollision->SetHiddenInGame(true);
 	BoxCollision->SetCollisionEnabled(bIsBox ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 	if (bIsBox) BoxCollision->SetCollisionProfileName(TEXT("SnapPoint"));
 
 	SphereCollision->SetVisibility(bIsSphere);
-	SphereCollision->SetHiddenInGame(!bIsSphere);
+	SphereCollision->SetHiddenInGame(true);
 	SphereCollision->SetCollisionEnabled(bIsSphere ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 	if (bIsSphere) SphereCollision->SetCollisionProfileName(TEXT("SnapPoint"));
 
 	CapsuleCollision->SetVisibility(bIsCapsule);
-	CapsuleCollision->SetHiddenInGame(!bIsCapsule);
+	CapsuleCollision->SetHiddenInGame(true);
 	CapsuleCollision->SetCollisionEnabled(bIsCapsule ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 	if (bIsCapsule) CapsuleCollision->SetCollisionProfileName(TEXT("SnapPoint"));
 }

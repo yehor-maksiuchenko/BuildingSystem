@@ -10,6 +10,13 @@ ABuildingTile_Master::ABuildingTile_Master()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	MeshComponent->SetupAttachment(RootComponent);
 
+    // Network Replication
+
+    MeshComponent->SetIsReplicated(true);
+    bReplicates = true;
+
+    // --
+
     static const TArray<FName> DefaultSnapTags =
     {
         "Snap.Support.Solo",

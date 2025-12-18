@@ -5,11 +5,6 @@
 
 FTransform USnapManagerSubsystem::CalculateSnap(FTransform PreviewTransform, TMap<FGameplayTag, int32> TagPreferences)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Kristæfer"));
-
-	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(1, 5.0f, FColor::Magenta, TEXT("Looking for it"));
-	}
 	// Find all snap points in range. Sphere Trace is used, FOR NOW, since later on Snap Points will be cached in a spatial structure for fast lookup.
 	TArray<UPrimitiveComponent*> OverlappedComponents;
 	TArray<AActor*> ActorsToIgnore;
@@ -24,11 +19,6 @@ FTransform USnapManagerSubsystem::CalculateSnap(FTransform PreviewTransform, TMa
 		nullptr,
 		ActorsToIgnore,
 		OverlappedComponents);
-	if (OverlappedComponents.Num() > 0) {
-		if (GEngine) {
-			GEngine->AddOnScreenDebugMessage(1, 5.0f, FColor::Cyan, TEXT("Got it"));
-		}
-	}
 
 	TArray<USnapPointComponent*> AvailableSnapPoints;
 

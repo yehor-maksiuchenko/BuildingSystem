@@ -15,6 +15,7 @@ class BUILDINGSYSTEM_API USnapManagerSubsystem : public UWorldSubsystem
 public:
 	UFUNCTION(BlueprintCallable)
 	FTransform CalculateSnap(FTransform PreviewTransform, TMap<FGameplayTag, int32> TagPreferences);
+
 protected:
 	UFUNCTION(BlueprintPure)
 	void SortSnapPoints(TArray<USnapPointComponent*>& SnapsToSort, FGameplayTagContainer RelevantTags) const;

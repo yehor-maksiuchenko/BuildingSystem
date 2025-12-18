@@ -26,6 +26,15 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	UFUNCTION(Server, Reliable)
+	void Server_PlaceTile(FTransform Transform, int32 TileIndex);
+
+	UFUNCTION()
+	void SetPreviewMesh(UStaticMesh* NewMesh);
+
+public:	
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
 	UFUNCTION()
 	void TryPlaceTheTile(const FInputActionValue& Value);
 
@@ -40,13 +49,6 @@ protected:
 
 	UFUNCTION()
 	void RotatePreview(const FInputActionValue& Value);
-
-
-	UFUNCTION()
-	void SetPreviewMesh(UStaticMesh* NewMesh);
-
-public:	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
 	// TAG-SHORTCUTS. ONLY TO BE USED IN C++
@@ -76,26 +78,6 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite)
 	FGameplayTagContainer StateTags;
-
-	// INPUT
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
-	class UInputMappingContext* DefaultMappingContext;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
-	class UInputAction* ToggleBuildModeAction;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
-	class UInputAction* PlaceTheTileAction;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
-	class UInputAction* NextTileAction;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
-	class UInputAction* PreviousTileAction;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
-	class UInputAction* RotatePreviewAction;
 
 	// Working with tiles
 

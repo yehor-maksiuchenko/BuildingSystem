@@ -21,6 +21,14 @@ void UBuildComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+    PreviewMesh->RegisterComponent();
+    PreviewMesh->AttachToComponent(GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+    HintPreviewMesh->RegisterComponent();
+    HintPreviewMesh->AttachToComponent(GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+
+    PreviewMesh->SetIsReplicated(false);
+    HintPreviewMesh->SetIsReplicated(false);
+
     SetPreviewMesh(TilesList->GetTileMesh(CurrentTileSelection));
     PreviewMID = UMaterialInstanceDynamic::Create(PreviewMaterial, this);
     PreviewMesh->SetMaterial(0, PreviewMID);
@@ -41,19 +49,6 @@ void UBuildComponent::BeginPlay()
                 SnapSubsystem,
                 &USnapManagerSubsystem::CalculateSnap
             );
-        }
-    }
-
-    // Bind 
-    if (AActor* Owner = GetOwner())
-    {
-        if (UEnhancedInputComponent* InputComp = Owner->FindComponentByClass<UEnhancedInputComponent>())
-        {
-            InputComp->BindAction(ToggleBuildModeAction, ETriggerEvent::Started, this, &UBuildComponent::ToggleBuildMode);
-            InputComp->BindAction(PlaceTheTileAction, ETriggerEvent::Started, this, &UBuildComponent::TryPlaceTheTile);
-            InputComp->BindAction(NextTileAction, ETriggerEvent::Started, this, &UBuildComponent::SelectNextTile);
-            InputComp->BindAction(PreviousTileAction, ETriggerEvent::Started, this, &UBuildComponent::SelectPreviousTile);
-            InputComp->BindAction(RotatePreviewAction, ETriggerEvent::Started, this, &UBuildComponent::RotatePreview);
         }
     }
 }
@@ -110,15 +105,29 @@ void UBuildComponent::SetPreviewMesh(UStaticMesh* NewMesh)
 
 void UBuildComponent::TryPlaceTheTile(const FInputActionValue& Value)
 {
-    if (StateTags.HasTag(BuildModeTag)) {
-        TSubclassOf<ABuildingTile_Master> TileClass = TilesList->GetTileClassRef(CurrentTileSelection);
-        FActorSpawnParameters SpawnParams;
-        GetWorld()->SpawnActor<ABuildingTile_Master>(
-            TileClass,
-            PreviewMesh->GetComponentTransform(),
-            SpawnParams
-        );
-    }
+    if (!StateTags.HasTagExact(BuildModeTag))
+        return;
+
+    Server_PlaceTile(PreviewMesh->GetComponentTransform(), CurrentTileSelection);
+}
+
+void UBuildComponent::Server_PlaceTile_Implementation(FTransform Transform, int32 TileIndex)
+{
+    if (!TilesList) return;
+
+    TSubclassOf<ABuildingTile_Master> TileClass =
+        TilesList->GetTileClassRef(TileIndex);
+
+    if (!TileClass) return;
+
+    FActorSpawnParameters Params;
+    Params.Owner = GetOwner();
+
+    GetWorld()->SpawnActor<ABuildingTile_Master>(
+        TileClass,
+        Transform,
+        Params
+    );
 }
 
 void UBuildComponent::ToggleBuildMode(const FInputActionValue& Value)
@@ -135,6 +144,10 @@ void UBuildComponent::ToggleBuildMode(const FInputActionValue& Value)
         HintPreviewMesh->SetVisibility(false);
         StateTags.AddTag(BuildModeTag);
     }
+    FString Authority = GetOwner()->HasAuthority() ? TEXT("SERVER") : TEXT("CLIENT");
+    ENetRole Role = GetOwner()->GetLocalRole();
+
+    UE_LOG(LogTemp, Warning, TEXT("Instance Role: %s | LocalRole=%d"), *Authority, (int32)Role);
 }
 
 void UBuildComponent::SelectNextTile()
