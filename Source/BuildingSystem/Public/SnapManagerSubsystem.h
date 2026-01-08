@@ -16,13 +16,25 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FTransform CalculateSnap(FTransform PreviewTransform, TMap<FGameplayTag, int32> TagPreferences);
 
-protected:
+private:
 	UFUNCTION(BlueprintPure)
 	void SortSnapPoints(TArray<USnapPointComponent*>& SnapsToSort, FGameplayTagContainer RelevantTags) const;
 
 	UFUNCTION(BlueprintCallable)
-	float CalculateSnapScore(const FSnapPointProperties& SnapPoint, const TMap<FGameplayTag, int>& TagWeights) const;
+	float CalculateSnapScore(const FTransform PreviewTransform, const FSnapPointProperties& SnapPoint, const TMap<FGameplayTag, int>& TagWeights) const;
 
 	UFUNCTION(BlueprintPure)
 	FTransform RegulateSnap(const FTransform& PreviewTransform, USnapPointComponent* SnapPoint);
+
+	UPROPERTY()
+	float TagScaleMultiplier = 10.0f;
+
+	UPROPERTY()
+	float DistanceScaleMultiplier = 0.2f;
+
+	UPROPERTY()
+	float PriorityScaleMultiplier = 2.0f;
+
+	UPROPERTY()
+	float AvgSnapDistance = 200.f;
 };

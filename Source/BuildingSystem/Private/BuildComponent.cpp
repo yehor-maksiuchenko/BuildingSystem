@@ -66,6 +66,9 @@ void UBuildComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
             PreviewMesh->SetWorldLocation(HitResult.TraceEnd);
         }
     }
+    else if (StateTags.HasTagExact(AdjustModeTag)) {
+
+    }
 
     if (PreviewSnappingRequest.IsBound())
     {
